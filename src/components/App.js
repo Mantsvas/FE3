@@ -2,61 +2,38 @@ import React from 'react';
 import { connect } from 'react-redux';
 import Card from './Card';
 import Genres from './Genres';
-import { setMovieList } from '../actions';
-import { getPopularMovies } from '../thunks';
+import { setMovieList, setGenreList, addLog } from '../actions';
+import { getPopularMovies, getGenres, getGenreMovies, like, dislike } from '../thunks';
 
 class App extends React.Component {
-  constructor() {
-    super();
 
-    this.state = {
-      hearted: [],
-    };
-  }
 
   componentDidMount() {
-    const { onGetPopularMovies } = this.props;
-
+    const { onGetPopularMovies, onGetGenres, onSetLogList, logList } = this.props;
+    onGetGenres();
     onGetPopularMovies();
+    onSetLogList(logList,"Aplikacija užkrauta");
   }
 
-  setMovieList = (movieList) => {
-    this.setState({
-      movieList,
-    })
-  };
-
-  addHeart = (id) => {
-    const { hearted } = this.state;
-
-    this.setState({
-      hearted: [ ...hearted, id ],
-    })
-  };
-
-  removeHeart = (id) => {
-    const { hearted } = this.state;
-
-    this.setState({
-      hearted: hearted.filter((currentId) => currentId !== id),
-    })
-  };
-
   render() {
-    const { hearted } = this.state;
-    const { movies } = this.props;
+    const { movies, genres, hearted, onGetGenreMovies, onLike, onDislike, logs, onSetLogList } = this.props;
 
     return (
       <React.Fragment>
-        <Genres onChangeList={this.setMovieList} />
+        <Genres genres={genres}
+            logs={logs}
+            addLog={onSetLogList}
+            onChangeList={onGetGenreMovies} />
 
         <div className="cards">
           {movies.map((movie) => (
             <Card
               key={movie.id}
               isHearted={hearted.includes(movie.id)}
-              onAddHeart={() => this.addHeart(movie.id)}
-              onRemoveHeart={() => this.removeHeart(movie.id)}
+              onAddHeart={() => onLike(movie.id,hearted)}
+              onRemoveHeart={() => onDislike(movie.id,hearted)}
+              addLogLike={() => onSetLogList(logs,"Uždėta širdelė filmui " + movie.original_title)}
+              addLogDislike={() => onSetLogList(logs,"Nuimta širdelė filmui " + movie.original_title)}
               movie={movie}
             />
           ))}
@@ -70,12 +47,21 @@ export default connect(
   (state) => {
     return {
       movies: state.movies.list,
+      genres: state.genres.list,
+      hearted: state.hearted.list,
+      logs: state.logs.list,
     };
   },
   (dispatch) => {
     return {
       onGetPopularMovies: () => dispatch(getPopularMovies()),
-      onSetMovieList: (list) => dispatch(setMovieList(list)),
+      onSetMovieList: (movieList) => dispatch(setMovieList(movieList)),
+      onGetGenres: () => dispatch(getGenres()),
+      onSetGenreList: (genreList) => dispatch(setGenreList(genreList)),
+      onGetGenreMovies: (id) => dispatch(getGenreMovies(id)),
+      onLike: (id, hearted) => dispatch(like(id,hearted)),
+      onDislike: (id, hearted) => dispatch(dislike(id,hearted)),
+      onSetLogList: (logList,log) => dispatch(addLog(logList,log)),
     };
   }
 )(App);

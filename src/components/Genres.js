@@ -1,47 +1,18 @@
 import React from 'react';
 import axios from 'axios';
 import { endpoints } from '../../config';
+import { setMovieList } from '../actions';
+import { getGenreMovies } from '../thunks';
 
 export default class Genres extends React.Component {
-  constructor() {
-    super();
-
-    this.state = {
-      genres: [],
-    };
-
-    this.requestGenres();
-  }
-
-  requestGenres = () => {
-    axios
-      .get(endpoints.genres())
-      .then((res) => this.setGenreList(res.data.genres))
-      .catch((error) => console.log(error));
-  };
-
-  requestGenresMovies = (id) => {
-    const { onChangeList } = this.props;
-
-    axios
-      .get(endpoints.genreMovies(id))
-      .then((res) => onChangeList(res.data.results))
-      .catch((error) => console.log(error));
-  };
-
-  setGenreList = (genres) => {
-    this.setState({
-      genres,
-    })
-  };
 
   render() {
-    const { genres } = this.state;
+    const { genres, onChangeList, addLog, logs } = this.props;
 
     return (
       <div className="genres">
         {genres.map((genre) => (
-          <div key={genre.id} className="genre" onClick={() => this.requestGenresMovies(genre.id)}>
+          <div key={genre.id} className="genre" onClick={() => { onChangeList(genre.id); addLog(logs,"Žanras pakeistas į " + genre.name)}}>
             {genre.name}
           </div>
         ))}
